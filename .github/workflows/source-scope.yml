@@ -60,9 +60,9 @@ jobs:
           echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $archive" | sha256sum --check -
           tar -xzf "$archive" -C "$RUNNER_TEMP" gitleaks
           set +e
-          "$RUNNER_TEMP/gitleaks" git --config "$RUNNER_TEMP/trusted-source-default.toml" --ignore-gitleaks-allow --gitleaks-ignore-path "$RUNNER_TEMP/trusted-source-empty.ignore" --no-banner --redact=100 --exit-code 1 --report-format json --report-path "$RUNNER_TEMP/history-secrets.json" .
+          python .github/scripts/run_strict_scanner.py "$RUNNER_TEMP/gitleaks" git --config "$RUNNER_TEMP/trusted-source-default.toml" --ignore-gitleaks-allow --gitleaks-ignore-path "$RUNNER_TEMP/trusted-source-empty.ignore" --no-banner --redact=100 --exit-code 1 --report-format json --report-path "$RUNNER_TEMP/history-secrets.json" .
           history_status=$?
-          "$RUNNER_TEMP/gitleaks" dir --config "$RUNNER_TEMP/trusted-source-default.toml" --ignore-gitleaks-allow --gitleaks-ignore-path "$RUNNER_TEMP/trusted-source-empty.ignore" --no-banner --redact=100 --exit-code 1 --report-format json --report-path "$RUNNER_TEMP/tree-secrets.json" .
+          python .github/scripts/run_strict_scanner.py "$RUNNER_TEMP/gitleaks" dir --config "$RUNNER_TEMP/trusted-source-default.toml" --ignore-gitleaks-allow --gitleaks-ignore-path "$RUNNER_TEMP/trusted-source-empty.ignore" --no-banner --redact=100 --exit-code 1 --report-format json --report-path "$RUNNER_TEMP/tree-secrets.json" .
           tree_status=$?
           set -e
           python - <<'PYSCAN'
@@ -84,7 +84,7 @@ jobs:
           mkdir -p "$regression"
           openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$regression/adjacent-key.pem" 2>/dev/null
           set +e
-          "$RUNNER_TEMP/gitleaks" dir --config "$RUNNER_TEMP/trusted-source-default.toml" --ignore-gitleaks-allow --gitleaks-ignore-path "$RUNNER_TEMP/trusted-source-empty.ignore" --no-banner --redact=100 --exit-code 1 "$regression"
+          python .github/scripts/run_strict_scanner.py "$RUNNER_TEMP/gitleaks" dir --config "$RUNNER_TEMP/trusted-source-default.toml" --ignore-gitleaks-allow --gitleaks-ignore-path "$RUNNER_TEMP/trusted-source-empty.ignore" --no-banner --redact=100 --exit-code 1 "$regression"
           status=$?
           set -e
           test "$status" -eq 1
